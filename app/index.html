@@ -215,7 +215,17 @@
   .sw .ns { width: 14px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #10203A, #9CB6AC); }
   .sw .qk { width: 12px; height: 12px; border-radius: 3px; background: #FF5A4E; }
   body:not([data-quake]) #qchips { display: none !important; }
-  body[data-quake] .ui.chips:not(#qchips), body[data-quake] .title .links, body[data-quake] .ui.timeline { display: none !important; }
+  body[data-quake] .ui.chips:not(#qchips), body[data-quake] .title .links, body[data-quake] .ui.timeline:not(#qtl), body[data-quake] #seg { display: none !important; }
+  body:not([data-quake]) #qinfo, body:not([data-quake]) #qtl { display: none !important; }
+  .ui.side .legend { max-height: min(58vh, 560px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.3) transparent; }
+  .qinfo { margin-top: 14px; display: grid; gap: 9px; font-size: 14.5px; line-height: 1.45; color: #C9D6E6; max-width: 430px; }
+  .qinfo b { color: #F4F8FF; font-weight: 600; }
+  .qtl { display: flex; align-items: flex-start; justify-content: space-between; margin: 18px 6px 8px; position: relative; }
+  .qtl::before { content: ''; position: absolute; left: 30px; right: 30px; top: 7px; height: 2px; background: rgba(255,255,255,.18); }
+  .qtl .d { position: relative; display: grid; justify-items: center; gap: 6px; font-size: 13.5px; line-height: 1.35; color: #C9D6E6; text-align: center; }
+  .qtl .d i { width: 14px; height: 14px; border-radius: 50%; background: #8A9BB5; display: block; }
+  .qtl .d.g i { background: var(--gold); } .qtl .d.q i { background: #FF5A4E; box-shadow: 0 0 0 6px rgba(255,90,78,.25); }
+  .qtl .d b { font-weight: 600; color: #F4F8FF; font-size: 15px; }
   .tabs { flex-wrap: wrap; }
   .tm { left: 44px; right: 44px; bottom: 34px; border-radius: 24px; padding: 14px 22px 14px; z-index: 710; background: rgba(14,23,40,.84); }
   .tm[hidden] { display: none; }
@@ -462,6 +472,7 @@
     <button class="wlink liveonly" id="reportBtn" type="button">Situation report<span class="lg"> for responders</span> &darr;</button>
     <button class="wlink liveonly" id="worldBtn" type="button"><span class="lg">Compare with </span>11 floods<span class="lg"> in other countries</span> &rarr;</button>
   </div>
+  <div class="qinfo" id="qinfo"><div><b>What it shows:</b> places where the radar surface changed after the quake: collapsed buildings, rockfalls, cracked ground.</div><div><b>Checked:</b> against 1,663 buildings graded by Copernicus EMS. Damaged areas are flagged 7.3&times; more often than undamaged ones; about half of the damaged pixels are found.</div><div><b>Agrees with NASA ARIA</b> (ALOS-2 radar) at village level: rank correlation 0.67.</div><div style="color:var(--gold)">A damage proxy after the event, not a prediction.</div></div>
 </div>
 
 <div class="ui cloudnote gl mapui liveonly" id="cloudNote" hidden><span id="cloudMsg">NASA's optical image of 8 Feb 2026 is covered by cloud. The radar sees the flood anyway.</span>
@@ -483,7 +494,7 @@
     <label class="lay" title="NASA-ISRO NISAR L-band radar, 25 October 2026, eight months after the flood. Open water only."><input type="checkbox" id="tNis"><span class="sw"><i class="ns"></i></span><span class="t">NISAR L-band radar</span><span class="ck"></span></label>
     <div class="chgkey" id="nisKey" hidden><p>NISAR, 25 Oct 2026, eight months after the flood. Open water only. Not the flood, not our trained model.</p></div>
     <label class="lay" title="Al Haouz earthquake, 8 September 2023. Damage proxy after the quake, not a prediction."><input type="checkbox" id="tQuake"><span class="sw"><i class="qk"></i></span><span class="t">Earthquake damage (Al Haouz 2023)</span><span class="ck"></span></label>
-    <div class="chgkey" id="quakeKey" hidden><p>Damage proxy from Sentinel-1 radar coherence loss, after the quake. Red: built-up land that changed. Yellow: other ground that changed (often rockfalls). Checked against 1,663 buildings graded by Copernicus EMS: damaged areas are flagged 7.3 times more often than undamaged ones. Likely changed, not confirmed destroyed.</p></div>
+    <div class="chgkey" id="quakeKey" hidden><p>Red: built-up land that changed after the quake. Yellow: other ground that changed (often rockfalls). Likely changed, not confirmed destroyed.</p></div>
     <div class="bm"><span class="micro">Basemap &middot; NASA imagery</span><div class="bmseg" id="bmseg" role="radiogroup" aria-label="Basemap"><button type="button" role="radio" aria-checked="true" data-bm="osm">Dark</button><button type="button" role="radio" aria-checked="false" data-bm="bm">Blue Marble</button><button type="button" role="radio" aria-checked="false" data-bm="tc">True colour</button></div></div>
   </div>
   <div class="placespanel gl" id="placesPanel" role="region" aria-label="Places near the flood">
@@ -505,6 +516,11 @@
 </div>
 <div class="ui zoom gl mapui"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
 
+<div class="ui timeline gl mapui liveonly" id="qtl">
+  <div class="row"><span class="micro" style="color:#C9D6E6">Sentinel-1 passes used &middot; path 154, one every 12 days</span><span class="micro" style="color:var(--gold)">Damage proxy &middot; after the event</span></div>
+  <div class="qtl"><div class="d"><i></i><b>18 Aug</b>pair before<br>(normal change)</div><div class="d g"><i></i><b>30 Aug</b>before</div><div class="d q"><i></i><b>8 Sep</b>earthquake<br>M 6.8, 22:11 UTC</div><div class="d g"><i></i><b>11 Sep</b>after</div></div>
+  <div class="credit">Contains modified Copernicus Sentinel data (2023), ASF DAAC HyP3 InSAR (also path 045: 22 Aug, 3 Sep, 15 Sep). References: Copernicus EMS EMSR695, NASA JPL ARIA. Places &copy; OpenStreetMap contributors.</div>
+</div>
 <div class="ui timeline gl mapui liveonly">
   <div class="row"><span class="micro" id="tlTitle" style="color:#C9D6E6">Sentinel-1 passes &middot; one every 6 days</span><span class="micro" id="badge" style="color:var(--gold)">Model estimate &middot; not independently verified</span></div>
   <div class="tlbar" id="tlbar"></div>
