@@ -213,6 +213,7 @@
   body.touring[data-ts="4"] .tour { left: auto; right: 44px; transform: none; width: 390px; bottom: 196px; }
   body.touring .chips { bottom: 262px; } body.touring .rank { bottom: 262px; } body.touring .schips { bottom: 440px; }
   .sw .ns { width: 14px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #10203A, #9CB6AC); }
+  .sw .qk { width: 12px; height: 12px; border-radius: 3px; background: #FF5A4E; }
   .tabs { flex-wrap: wrap; }
   .tm { left: 44px; right: 44px; bottom: 34px; border-radius: 24px; padding: 14px 22px 14px; z-index: 710; background: rgba(14,23,40,.84); }
   .tm[hidden] { display: none; }
@@ -479,6 +480,8 @@
     <div class="chgkey" id="chgKey" hidden><i class="bar"></i><div class="lab"><span>darker</span><span>no change</span><span>brighter</span></div><p>Any change between the two dates, not only water. Not a flood map.</p></div>
     <label class="lay" title="NASA-ISRO NISAR L-band radar, 25 October 2026, eight months after the flood. Open water only."><input type="checkbox" id="tNis"><span class="sw"><i class="ns"></i></span><span class="t">NISAR L-band radar</span><span class="ck"></span></label>
     <div class="chgkey" id="nisKey" hidden><p>NISAR, 25 Oct 2026, eight months after the flood. Open water only. Not the flood, not our trained model.</p></div>
+    <label class="lay" title="Al Haouz earthquake, 8 September 2023. Damage proxy after the quake, not a prediction."><input type="checkbox" id="tQuake"><span class="sw"><i class="qk"></i></span><span class="t">Earthquake damage (Al Haouz 2023)</span><span class="ck"></span></label>
+    <div class="chgkey" id="quakeKey" hidden><p>Damage proxy from Sentinel-1 radar coherence loss, after the quake. Red: built-up land that changed. Yellow: other ground that changed (often rockfalls). Checked against 1,663 buildings graded by Copernicus EMS: damaged areas are flagged 7.3 times more often than undamaged ones. Likely changed, not confirmed destroyed.</p></div>
     <div class="bm"><span class="micro">Basemap &middot; NASA imagery</span><div class="bmseg" id="bmseg" role="radiogroup" aria-label="Basemap"><button type="button" role="radio" aria-checked="true" data-bm="osm">Dark</button><button type="button" role="radio" aria-checked="false" data-bm="bm">Blue Marble</button><button type="button" role="radio" aria-checked="false" data-bm="tc">True colour</button></div></div>
   </div>
   <div class="placespanel gl" id="placesPanel" role="region" aria-label="Places near the flood">
@@ -558,7 +561,7 @@
   const cover = () => { map.invalidateSize(); const vb = L.latLngBounds(viewBounds), z = map.getBoundsZoom(vb, true); map.setMinZoom(Math.max(3, z - 4)); map.setMaxBounds([[vb.getSouth() - 3, vb.getWest() - 4], [vb.getNorth() + 3, vb.getEast() + 4]]); if (!map._covered) { map.setView(vb.getCenter(), z, { animate: false }); map._covered = true; } updateClip(); };
   map.setView(centre, 11);
   ['beforePane', 'afterPane', 'changePane', 'vectorPane'].forEach((n, i) => { map.createPane(n).style.zIndex = 410 + i * 10; });
-  [['sRadar', 412], ['sTruth', 442], ['sModel', 446], ['chgPane', 425], ['nisPane', 426], ['tmRadar', 413], ['tmFlood', 433]].forEach(([n, z]) => { map.createPane(n).style.zIndex = z; });
+  [['sRadar', 412], ['sTruth', 442], ['sModel', 446], ['chgPane', 425], ['nisPane', 426], ['quakePane', 427], ['tmRadar', 413], ['tmFlood', 433]].forEach(([n, z]) => { map.createPane(n).style.zIndex = z; });
 
   // ---------- radar colouring: grey radar to a blue, teal and cream ramp (same ramp for both dates) ----------
   const STOPS = [[0, [16, 30, 56]], [0.40, [54, 92, 126]], [0.75, [156, 182, 172]], [1, [240, 236, 216]]];
@@ -695,10 +698,18 @@
       onEachFeature: (f, l) => f.properties && f.properties.name && l.bindTooltip(nameTip(f.properties.name), { direction: 'top', offset: [0, -4] })
     });
   }
-  const tog = { change: $('tChange'), roads: $('tRoads'), villages: $('tVillages'), radar: $('tRadar'), chg: $('tChg'), nis: $('tNis') };
+  const tog = { change: $('tChange'), roads: $('tRoads'), villages: $('tVillages'), radar: $('tRadar'), chg: $('tChg'), nis: $('tNis'), quake: $('tQuake') };
   let nisLayer = null;
   try { const nm = await getJSON('data/nisar/nisar_meta.json'); nisLayer = L.imageOverlay('data/nisar/nisar_hh_overlay.png', nm.overlay_bounds, { pane: 'nisPane', opacity: 0.92 }); } catch (e) { /* optional layer */ }
   if (!nisLayer) { $('tNis').closest('label').style.display = 'none'; }
+  let quakeLayer = null, quakeMeta = null, quakeWasOn = false;
+  try {
+    quakeMeta = await getJSON('data/quake/quake_meta.json');
+    const qImg = L.imageOverlay('data/quake/damage.png', quakeMeta.bounds, { pane: 'quakePane', opacity: 0.9 });
+    const qPl = await loadGeo('data/quake/places.geojson', { pane: 'quakePane', pointToLayer: (f, ll) => L.circleMarker(ll, { pane: 'quakePane', radius: 3 + 6 * f.properties.share_flagged, color: '#FFFFFF', weight: 1, fillColor: f.properties.share_flagged >= 0.5 ? '#FF5A4E' : '#F2C14E', fillOpacity: 0.9 }).bindTooltip(f.properties.name + ': ' + Math.round(100 * f.properties.share_flagged) + '% of built-up land flagged') });
+    quakeLayer = L.layerGroup([qImg, qPl]);
+  } catch (e) { /* optional layer */ }
+  if (!quakeLayer) { $('tQuake').closest('label').style.display = 'none'; }
   let cur = methods[0], cloudMode = false, cloudPrev = null, tmMode = false;
   function applyLayers() {
     if (tmMode) return;
@@ -707,6 +718,14 @@
     if (tog.villages.checked) cur.villages.addTo(map);
     if (tog.change.checked) { if (!map.hasLayer(change)) change.addTo(map); } else { map.removeLayer(change); }
     $('nisKey').hidden = !tog.nis.checked;
+    if (quakeLayer) {
+      const qOn = tog.quake.checked && !cloudMode, slow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1.6;
+      $('quakeKey').hidden = !tog.quake.checked;
+      if (qOn) { if (!map.hasLayer(quakeLayer)) quakeLayer.addTo(map); } else map.removeLayer(quakeLayer);
+      if (qOn && !quakeWasOn) { map.setMaxBounds(null); map.setMinZoom(5); map.flyTo(quakeMeta.centre, 10, { duration: slow }); }
+      if (!qOn && quakeWasOn) { map._covered = false; cover(); }
+      quakeWasOn = qOn;
+    }
     if (nisLayer) { if (tog.nis.checked && !cloudMode) { if (!map.hasLayer(nisLayer)) nisLayer.addTo(map); } else map.removeLayer(nisLayer); }
     const wantChg = tog.chg.checked && !cloudMode;
     $('chgKey').hidden = !tog.chg.checked;
@@ -809,7 +828,7 @@
 
   const HAZ = {
     flood: { name: 'Flood', live: true, title: 'Flood: built and tested', status: ['up', 'built and tested'], sees: 'Calm open water is dark in radar, so new flood water stands out against land.', need: 'Done: Sen1Floods11 labels, a U-Net, checks in 11 countries, a Morocco case, a NISAR test.', ex: 'Loukkos River, Morocco, 2026 (this app).' },
-    quake: { name: 'Earthquake', title: 'Earthquake damage', status: ['lim', 'roadmap, not built'], sees: 'Collapsed buildings and shifted ground change how radar signal comes back. A drop in how stable the signal is between two dates (coherence), or sudden changes in brightness, point to damaged areas. Interferometry can also measure ground movement.', need: 'Labelled damage maps for training and checking, and radar products that keep the signal phase (HyP3 can order them), not only brightness.', ex: 'A real case a team could test on: Al Haouz, Morocco, 8 September 2023 (magnitude 6.8).' },
+    quake: { name: 'Earthquake', title: 'Earthquake damage', status: ['up', 'first version, checked'], sees: 'Collapsed buildings and shifted ground change how radar signal comes back. A drop in how stable the signal is between two dates (coherence), or sudden changes in brightness, point to damaged areas. Interferometry can also measure ground movement.', need: 'Labelled damage maps for training and checking, and radar products that keep the signal phase (HyP3 can order them), not only brightness.', ex: 'Built after the hackathon for Al Haouz, Morocco, 8 September 2023 (M 6.8): Sentinel-1 coherence loss, checked against 1,663 buildings graded by Copernicus EMS (EMSR695). Damaged areas are flagged 7.3 times more often than undamaged ones; about half of the damaged pixels are found. Tick "Earthquake damage" on the map.' },
     fire: { name: 'Wildfire', title: 'Wildfire burn scars', status: ['lim', 'roadmap, not built'], sees: 'Radar sees through smoke and cloud. Burned vegetation scatters radar differently from healthy vegetation, especially in L-band, the band NISAR carries.', need: 'Labelled burn-scar maps (for example from optical burned-area products) and before and after radar of fires, then training and a check against an independent map.', ex: 'Any large fire with open burned-area labels.' },
     slide: { name: 'Landslide', title: 'Landslides', status: ['lim', 'roadmap, not built'], sees: 'A slope that slides changes the ground surface, which shows as changes in radar brightness and coherence on steep terrain.', need: 'A labelled landslide inventory, a terrain model for slope and shadow (radar shadow on steep ground can look like change), and a check against the inventory.', ex: 'Mountain regions of Morocco after heavy rain.' },
     oil: { name: 'Oil spill', title: 'Oil spills at sea', status: ['lim', 'roadmap, not built'], sees: 'An oil slick calms the sea surface, so it looks dark in radar, like a patch of flat water.', need: 'Labelled slicks and a way to tell slicks from look-alikes such as calm water and wind shadow. A single radar image can be enough.', ex: 'Any open-ocean spill with labelled images.' },

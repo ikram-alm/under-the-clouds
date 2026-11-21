@@ -1,0 +1,26 @@
+{
+ "event": "Al Haouz earthquake, Morocco, M 6.8, 8 Sep 2023",
+ "bounds": [
+  [
+   30.8,
+   -8.8
+  ],
+  [
+   31.4,
+   -7.8
+  ]
+ ],
+ "centre": [
+  31.06,
+  -8.3
+ ],
+ "method": "Sentinel-1 InSAR coherence loss (ASF HyP3, paths 154 + 045), drop >= 0.3, fixed before checking",
+ "emsr695": {
+  "graded_buildings": 1663,
+  "detection_pixel": 0.48,
+  "false_alarm": 0.07,
+  "lift": 7.3
+ },
+ "places_half_flagged": 64,
+ "places_scored": 243
+}
