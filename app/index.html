@@ -218,7 +218,19 @@
   body[data-quake] .ui.chips:not(#qchips), body[data-quake] .title .links, body[data-quake] .ui.timeline:not(#qtl), body[data-quake] #seg { display: none !important; }
   body:not([data-quake]) #qinfo, body:not([data-quake]) #qtl { display: none !important; }
   .ui.side .legend { max-height: min(58vh, 560px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.3) transparent; }
-  .qinfo { margin-top: 14px; display: grid; gap: 9px; font-size: 14.5px; line-height: 1.45; color: #C9D6E6; max-width: 430px; }
+  .qinfo { margin-top: 10px; display: grid; gap: 8px; font-size: 13.5px; line-height: 1.45; color: #C9D6E6; max-width: 330px; }
+  .qinfo summary { cursor: pointer; color: var(--gold); font-weight: 600; list-style: none; }
+  .qinfo summary::-webkit-details-marker { display: none; }
+  .qinfo summary::after { content: ' \2193'; } .qinfo details[open] summary::after { content: ' \2191'; }
+  .qinfo details div { margin-top: 6px; font-size: 12.5px; }
+  body[data-quake] #divider { display: none !important; }
+  body[data-quake] #qchips { bottom: 80px; gap: 8px; }
+  #qchips .chip { padding: 8px 14px; } #qchips .chip .v { font-size: 18px; } #qchips .chip .l { font-size: 11.5px; }
+  .qbar { left: 50%; transform: translateX(-50%); bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-radius: 999px; font-size: 13px; color: #C9D6E6; white-space: nowrap; }
+  .qbar .qd { display: flex; align-items: center; gap: 7px; font-weight: 600; color: #F4F8FF; }
+  .qbar .qd i { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); display: block; }
+  .qbar .qd.q i { background: #FF5A4E; box-shadow: 0 0 0 4px rgba(255,90,78,.25); }
+  .qbar .qline { width: 34px; height: 1.5px; background: rgba(255,255,255,.25); }
   .qinfo b { color: #F4F8FF; font-weight: 600; }
   .qtl { display: flex; align-items: flex-start; justify-content: space-between; margin: 18px 6px 8px; position: relative; }
   .qtl::before { content: ''; position: absolute; left: 30px; right: 30px; top: 7px; height: 2px; background: rgba(255,255,255,.18); }
@@ -472,7 +484,7 @@
     <button class="wlink liveonly" id="reportBtn" type="button">Situation report<span class="lg"> for responders</span> &darr;</button>
     <button class="wlink liveonly" id="worldBtn" type="button"><span class="lg">Compare with </span>11 floods<span class="lg"> in other countries</span> &rarr;</button>
   </div>
-  <div class="qinfo" id="qinfo"><div><b>What it shows:</b> places where the radar surface changed after the quake: collapsed buildings, rockfalls, cracked ground.</div><div><b>Checked:</b> against 1,663 buildings graded by Copernicus EMS. Damaged areas are flagged 7.3&times; more often than undamaged ones; about half of the damaged pixels are found.</div><div><b>Agrees with NASA ARIA</b> (ALOS-2 radar) at village level: rank correlation 0.67.</div><div style="color:var(--gold)">A damage proxy after the event, not a prediction.</div></div>
+  <div class="qinfo" id="qinfo"><div>Radar shows where the ground surface changed after the quake. <span style="color:var(--gold)">Likely changed, not confirmed destroyed.</span></div><details><summary>How it was checked</summary><div>Against 1,663 buildings graded by Copernicus EMS: damaged areas are flagged 7.3&times; more often than undamaged ones, and about half of the damaged pixels are found. Agrees with NASA ARIA (ALOS-2) at village level (rank correlation 0.67). Sentinel-1: 30 Aug and 11 Sep 2023 (path 154), 3 and 15 Sep (path 045). A damage proxy after the event, not a prediction.</div></details></div>
 </div>
 
 <div class="ui cloudnote gl mapui liveonly" id="cloudNote" hidden><span id="cloudMsg">NASA's optical image of 8 Feb 2026 is covered by cloud. The radar sees the flood anyway.</span>
@@ -516,11 +528,7 @@
 </div>
 <div class="ui zoom gl mapui"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
 
-<div class="ui timeline gl mapui liveonly" id="qtl">
-  <div class="row"><span class="micro" style="color:#C9D6E6">Sentinel-1 passes used &middot; path 154, one every 12 days</span><span class="micro" style="color:var(--gold)">Damage proxy &middot; after the event</span></div>
-  <div class="qtl"><div class="d"><i></i><b>18 Aug</b>pair before<br>(normal change)</div><div class="d g"><i></i><b>30 Aug</b>before</div><div class="d q"><i></i><b>8 Sep</b>earthquake<br>M 6.8, 22:11 UTC</div><div class="d g"><i></i><b>11 Sep</b>after</div></div>
-  <div class="credit">Contains modified Copernicus Sentinel data (2023), ASF DAAC HyP3 InSAR (also path 045: 22 Aug, 3 Sep, 15 Sep). References: Copernicus EMS EMSR695, NASA JPL ARIA. Places &copy; OpenStreetMap contributors.</div>
-</div>
+<div class="ui gl mapui liveonly qbar" id="qtl"><span class="micro">Sentinel-1</span><span class="qd"><i></i>30 Aug</span><span class="qline"></span><span class="qd q"><i></i>8 Sep &middot; M 6.8</span><span class="qline"></span><span class="qd"><i></i>11 Sep</span><span class="micro" style="color:var(--gold)">after the event</span></div>
 <div class="ui timeline gl mapui liveonly">
   <div class="row"><span class="micro" id="tlTitle" style="color:#C9D6E6">Sentinel-1 passes &middot; one every 6 days</span><span class="micro" id="badge" style="color:var(--gold)">Model estimate &middot; not independently verified</span></div>
   <div class="tlbar" id="tlbar"></div>
@@ -728,8 +736,8 @@
   let quakeLayer = null, quakeMeta = null, quakeWasOn = false, quakeSaved = null;
   try {
     quakeMeta = await getJSON('data/quake/quake_meta.json');
-    const qImg = L.imageOverlay('data/quake/damage.png', quakeMeta.bounds, { pane: 'quakePane', opacity: 0.9 });
-    const qPl = await loadGeo('data/quake/places.geojson', { pane: 'quakePane', pointToLayer: (f, ll) => L.circleMarker(ll, { pane: 'quakePane', radius: 3 + 6 * f.properties.share_flagged, color: '#FFFFFF', weight: 1, fillColor: f.properties.share_flagged >= 0.5 ? '#FF5A4E' : '#F2C14E', fillOpacity: 0.9 }).bindTooltip(f.properties.name + ': ' + Math.round(100 * f.properties.share_flagged) + '% of built-up land flagged') });
+    const qImg = L.imageOverlay('data/quake/damage.png', quakeMeta.bounds, { pane: 'quakePane', opacity: 0.8 });
+    const qPl = await loadGeo('data/quake/places.geojson', { pane: 'quakePane', filter: (f) => f.properties.share_flagged >= 0.5, pointToLayer: (f, ll) => L.circleMarker(ll, { pane: 'quakePane', radius: 3.5, color: '#0E1728', weight: 1, fillColor: '#FF6B5B', fillOpacity: 0.95 }).bindTooltip(f.properties.name + ': ' + Math.round(100 * f.properties.share_flagged) + '% of built-up land flagged') });
     quakeLayer = L.layerGroup([qImg, qPl]);
     $('qPlaces').textContent = quakeMeta.places_half_flagged + ' of ' + quakeMeta.places_scored;
   } catch (e) { /* optional layer */ }
