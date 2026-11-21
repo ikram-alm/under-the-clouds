@@ -214,6 +214,8 @@
   body.touring .chips { bottom: 262px; } body.touring .rank { bottom: 262px; } body.touring .schips { bottom: 440px; }
   .sw .ns { width: 14px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #10203A, #9CB6AC); }
   .sw .qk { width: 12px; height: 12px; border-radius: 3px; background: #FF5A4E; }
+  body:not([data-quake]) #qchips { display: none !important; }
+  body[data-quake] .ui.chips:not(#qchips), body[data-quake] .title .links, body[data-quake] .ui.timeline { display: none !important; }
   .tabs { flex-wrap: wrap; }
   .tm { left: 44px; right: 44px; bottom: 34px; border-radius: 24px; padding: 14px 22px 14px; z-index: 710; background: rgba(14,23,40,.84); }
   .tm[hidden] { display: none; }
@@ -496,6 +498,11 @@
   <div class="chip gl"><span class="v out"><span id="nRoad">0</span><small>km</small></span><span class="l">road in flooded areas</span></div>
   <button class="chip gl" id="placesBtn" type="button" aria-expanded="false" aria-controls="placesPanel"><span class="v out"><span id="nPlaces">0</span></span><span class="l" id="lPlaces">places within 500 m &middot; show list</span></button>
 </div>
+<div class="ui chips mapui liveonly" id="qchips">
+  <div class="chip gl"><span class="v out">1,663</span><span class="l">buildings checked (Copernicus EMS)</span></div>
+  <div class="chip gl"><span class="v out">7.3&times;</span><span class="l">damaged flagged more than undamaged</span></div>
+  <div class="chip gl"><span class="v out"><span id="qPlaces">&ndash;</span></span><span class="l">villages with half or more flagged</span></div>
+</div>
 <div class="ui zoom gl mapui"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
 
 <div class="ui timeline gl mapui liveonly">
@@ -702,12 +709,13 @@
   let nisLayer = null;
   try { const nm = await getJSON('data/nisar/nisar_meta.json'); nisLayer = L.imageOverlay('data/nisar/nisar_hh_overlay.png', nm.overlay_bounds, { pane: 'nisPane', opacity: 0.92 }); } catch (e) { /* optional layer */ }
   if (!nisLayer) { $('tNis').closest('label').style.display = 'none'; }
-  let quakeLayer = null, quakeMeta = null, quakeWasOn = false;
+  let quakeLayer = null, quakeMeta = null, quakeWasOn = false, quakeSaved = null;
   try {
     quakeMeta = await getJSON('data/quake/quake_meta.json');
     const qImg = L.imageOverlay('data/quake/damage.png', quakeMeta.bounds, { pane: 'quakePane', opacity: 0.9 });
     const qPl = await loadGeo('data/quake/places.geojson', { pane: 'quakePane', pointToLayer: (f, ll) => L.circleMarker(ll, { pane: 'quakePane', radius: 3 + 6 * f.properties.share_flagged, color: '#FFFFFF', weight: 1, fillColor: f.properties.share_flagged >= 0.5 ? '#FF5A4E' : '#F2C14E', fillOpacity: 0.9 }).bindTooltip(f.properties.name + ': ' + Math.round(100 * f.properties.share_flagged) + '% of built-up land flagged') });
     quakeLayer = L.layerGroup([qImg, qPl]);
+    $('qPlaces').textContent = quakeMeta.places_half_flagged + ' of ' + quakeMeta.places_scored;
   } catch (e) { /* optional layer */ }
   if (!quakeLayer) { $('tQuake').closest('label').style.display = 'none'; }
   let cur = methods[0], cloudMode = false, cloudPrev = null, tmMode = false;
@@ -724,6 +732,8 @@
       if (qOn) { if (!map.hasLayer(quakeLayer)) quakeLayer.addTo(map); } else map.removeLayer(quakeLayer);
       if (qOn && !quakeWasOn) { map.setMaxBounds(null); map.setMinZoom(5); map.flyTo(quakeMeta.centre, 10, { duration: slow }); }
       if (!qOn && quakeWasOn) { map._covered = false; cover(); }
+      if (qOn && !quakeWasOn) { quakeSaved = [$('eyebrow').textContent, $('place').textContent]; $('eyebrow').textContent = 'Al Haouz earthquake \u00b7 8 Sep 2023 \u00b7 M 6.8'; $('place').textContent = 'Al Haouz'; document.body.dataset.quake = '1'; }
+      if (!qOn && quakeWasOn) { if (quakeSaved) { $('eyebrow').textContent = quakeSaved[0]; $('place').textContent = quakeSaved[1]; } delete document.body.dataset.quake; }
       quakeWasOn = qOn;
     }
     if (nisLayer) { if (tog.nis.checked && !cloudMode) { if (!map.hasLayer(nisLayer)) nisLayer.addTo(map); } else map.removeLayer(nisLayer); }
