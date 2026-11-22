@@ -6,7 +6,7 @@ Built for the NASA Space Apps Challenge 2026 (Meknès, Morocco), challenge *"Dan
 
 > **Status: hackathon prototype.** The model is trained and scored on a public benchmark, and it has been run on a real flood in Morocco (the Loukkos plain near Ksar El Kebir, January to February 2026). We have no expert flood map for the Moroccan event. A first, **preliminary** check against independent but threshold-made water masks is unfavourable to the model (see "Independent check in Morocco"), so the Moroccan numbers below are model estimates, not verified measurements. Items marked **TBD** are not done.
 
-**Live map:** https://rabaaab.github.io/under-the-clouds/app/ opens on a spinning Earth built from NASA Blue Marble and Black Marble imagery. Click the orange marker (live case: Morocco 2026) or any white marker (benchmark floods in 10 other countries). Go straight to the map with https://rabaaab.github.io/under-the-clouds/app/#map
+**Live map:** https://ikram-alm.github.io/under-the-clouds/app/ opens on a spinning Earth built from NASA Blue Marble and Black Marble imagery. Click the orange marker (live case: Morocco 2026) or any white marker (benchmark floods in 10 other countries). Go straight to the map with https://ikram-alm.github.io/under-the-clouds/app/
 
 **Time machine:** on the live map, "Time machine" shows the model's water on each Sentinel-1 pass over Ksar El Kebir, with a curve and a play button. Orange is water the U-Net finds on that date that is not water on at least 80% of the dates (sea, rivers and reservoirs are removed). The lowest value, on the dry date, is the model's false-alarm floor. It has all eleven passes (22 Dec to 20 Feb, including the 21 Jan and 8 Feb pair of the main map). Before February the curve sits between 4 and 12 km2 on dry dates, which is the model's false-alarm floor; it peaks at 58 km2 on 8 February, then falls to 39 km2 on 14 February and 22 km2 on 20 February. This is a space-time use of our 2D model, not a trained 3D CNN, and the values are model estimates.
 
@@ -357,3 +357,14 @@ AI tools were used during the project, as required by the NASA Space Apps submis
 ## License
 
 MIT. See the [`LICENSE`](LICENSE) file.
+
+
+## Team 
+
+**Under the Clouds** was built at NASA Space Apps Challenge 2026 (Meknès), challenge "Dancing with the SARs", by:
+
+- **Rabab Agoujim**: U-Net model and training, integration, web map and globe
+- **Ikram Al Metalsi**: real radar scenes and inference (Ksar El Kebir), false-alarm clean-up, roads and villages impact, NISAR L-band tests, Mozambique validation, time-lapse
+- **Aya Driouche**: evaluation on an independent Moroccan reference, failure cases, verified event facts
+
+Original team repository: https://github.com/Rabaaab/under-the-clouds
